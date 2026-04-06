@@ -1373,10 +1373,16 @@ function exportExcel() {
 }
 
 // ── EXPORT PDF ──
-async function exportPDF() {
-  const rows = getFiltered();
-  const today = new Date().toLocaleDateString('vi-VN');
 
+  
+async function exportPDF() {
+  if (typeof html2canvas === 'undefined') {
+    showToast('Thiếu thư viện html2canvas', 'error');
+    console.error('html2canvas chưa được load');
+    return;
+  }
+
+  const rows = getFiltered();
   if (!rows.length) {
     showToast('Không có dữ liệu để xuất PDF', 'error');
     return;
