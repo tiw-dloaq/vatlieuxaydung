@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vật Liệu Xây Dựng</title>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=GqMHFTLAI6gUOyxJmI5JDZ4AZaYsFp3jEvxu0IFJwug9xlJyWfg8QIUhswXV2z-5UHisWvrza7drQnZ7JOqFpuQJHIp2m_06fwc8cE_jYbqlz8Afylk3_8Ap-r0m8F2eHOC8ie9zmzllqkU06YgPdFPcoqY9oE_3uQQsoEq4eihZMB4pfIDcqxaxCy3dWPdjRN5_7nftdyxnslS7Qwc_lx-4UdLgdkVieXe_tF28QYUcR-B9DNPlDxOunlpHc27TpXgUOwInpxpTuSDeslM2jA" charset="UTF-8"></script><script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=zKMH6U2XZqgaJaWpsGafLQ_BekC6AEONrTLwiSg8-okncKSDAa6uXhCRm1SSw4T8ArDiVCYgdyGMKyEhHFmJV364HeiiC91eez1RFY7hzeibh5q_iD7FprISWCRiP6fKwcRD_lWS0PxJrOwjjOYwAeLGeD9lJuami0RIWi7n75CaEg1De7kMfK9XsUkmbpmLmTtfTMm_Z9WuM-BCmHH7_0bl6NpQKU4IiL2eTQSnPQ_WMHZ5iT3xsqiW_qzSGFamLIOj8XmXwA85aeHa393QBA" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=zKMH6U2XZqgaJaWpsGafLQ_BekC6AEONrTLwiSg8-okncKSDAa6uXhCRm1SSw4T8ArDiVCYgdyGMKyEhHFmJV364HeiiC91eez1RFY7hzeibh5q_iD7FprISWCRiP6fKwcRD_lWS0PxJrOwjjOYwAeLGeD9lJuami0RIWi7n75CaEg1De7kMfK9XsUkmbpmLmTtfTMm_Z9WuM-BCmHH7_0bl6NpQKU4IiL2eTQSnPQ_WMHZ5iT3xsqiW_qzSGFamLIOj8XmXwA85aeHa393QBA" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -202,45 +202,6 @@ select.filter-sel {
   padding: 6px 10px;
   font-size: 12px;
   font-weight: 500;
-}
-
-.group-summary {
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #f8fbfe 0%, #eef5fb 100%);
-  border: 1px solid #d7e7f3;
-}
-.group-title {
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-.group-sub {
-  font-size: 12px;
-  color: var(--text2);
-  margin-bottom: 8px;
-}
-.group-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.group-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--text2);
-  padding: 6px 8px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.group-total {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
 }
 
 /* ── BUTTONS ── */
@@ -611,7 +572,6 @@ label.flabel {
           <input type="number" id="max-price" placeholder="Giá đến" min="0" oninput="render()">
         </div>
         <div style="flex:1;min-width:0"></div>
-        <button class="btn btn-ghost" onclick="toggleGroupMode()" id="group-btn">Gộp vật liệu: Tắt</button>
         <button class="btn btn-ghost" onclick="clearFilters()" id="clear-btn" style="display:none">✕ Xóa lọc</button>
         <button class="btn btn-add" onclick="openModal()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1141,8 +1101,7 @@ function normalizeText(v) {
 }
 
 function getFiltered() {
-  const qRaw = document.getElementById('search').value.trim();
-  const q = normalizeText(qRaw);
+  const q = normalizeText(document.getElementById('search').value.trim());
   const fc = document.getElementById('filter-cat').value;
   const fu = document.getElementById('filter-unit').value;
   const minPrice = parseFloat(document.getElementById('min-price').value);
@@ -1172,77 +1131,7 @@ function getFiltered() {
     }
   });
 
-  if (!(groupMode && q)) return rows;
-
-  const groups = new Map();
-  rows.forEach(r => {
-    const key = normalizeText(r.name) + '|' + r.unit;
-    if (!groups.has(key)) {
-      groups.set(key, {
-        id: 'g_' + key,
-        isGroup: true,
-        name: r.name,
-        cat: r.cat,
-        unit: r.unit,
-        qty: 0,
-        price: 0,
-        note: '',
-        date: '',
-        lines: []
-      });
-    }
-    const g = groups.get(key);
-    g.qty += Number(r.qty || 0);
-    g.lines.push({
-      date: r.date || '',
-      qty: Number(r.qty || 0),
-      unit: r.unit,
-      note: r.note || ''
-    });
-  });
-
-  const groupedRows = Array.from(groups.values()).map(g => {
-    g.lines.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-    g.date = g.lines.length ? g.lines[g.lines.length - 1].date : '';
-    return g;
-  });
-
-  groupedRows.sort((a, b) => {
-    switch (sortBy) {
-      case 'date-asc': return (a.date || '').localeCompare(b.date || '');
-      case 'name-asc': return (a.name || '').localeCompare(b.name || '', 'vi');
-      case 'qty-desc': return Number(b.qty || 0) - Number(a.qty || 0);
-      case 'date-desc':
-      default: return (b.date || '').localeCompare(a.date || '');
-    }
-  });
-
-  return groupedRows;
-}
-
-function toggleGroupMode() {
-  groupMode = !groupMode;
-  const btn = document.getElementById('group-btn');
-  if (btn) btn.textContent = `Gộp vật liệu: ${groupMode ? 'Bật' : 'Tắt'}`;
-  render();
-}
-
-function renderGroupCell(r) {
-  const linesHtml = r.lines.map(line => `
-    <div class="group-line">
-      <span>${fmtDate(line.date)}</span>
-      <span>${fmtQty(line.qty)} ${line.unit}${line.note ? ' · ' + line.note : ''}</span>
-    </div>
-  `).join('');
-
-  return `
-    <div class="group-summary">
-      <div class="group-title">${r.name}</div>
-      <div class="group-sub">${r.lines.length} lần nhập</div>
-      <div class="group-lines">${linesHtml}</div>
-      <div class="group-total">Tổng: ${fmtQty(r.qty)} ${r.unit}</div>
-    </div>
-  `;
+  return rows;
 }
 
 // ── RENDER ──
@@ -1289,15 +1178,6 @@ function render() {
 
     tbody.innerHTML = rows.map((r, i) => {
       const total = r.qty * (r.price || 0);
-
-      if (r.isGroup) {
-        return `<tr>
-          <td style="color:var(--text3);font-size:12px">${i + 1}</td>
-          <td colspan="8">${renderGroupCell(r)}</td>
-          <td></td>
-        </tr>`;
-      }
-
       return `<tr>
         <td style="color:var(--text3);font-size:12px">${i + 1}</td>
         <td class="tname">${r.name}</td>
@@ -1324,11 +1204,6 @@ function render() {
     mobList.innerHTML = rows.map((r, i) => {
       const total = r.qty * (r.price || 0);
       const s = CAT_STYLE[r.cat] || CAT_STYLE['Khác'];
-
-      if (r.isGroup) {
-        return `<div class="mob-card">${renderGroupCell(r)}</div>`;
-      }
-
       return `<div class="mob-card">
         <div class="mob-row1">
           <div class="mob-name">${r.name}</div>
