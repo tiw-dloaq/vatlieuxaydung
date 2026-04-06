@@ -342,6 +342,88 @@ label.flabel {
   font-size: 11px; font-weight: 600;
   padding: 2px 7px; border-radius: 20px; margin-left: 6px;
 }
+
+/* ── MOBILE CARD LIST (replaces table on small screens) ── */
+.mob-list { display: none; }
+.mob-card {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  transition: background 0.1s;
+}
+.mob-card:last-child { border-bottom: none; }
+.mob-card:active { background: var(--surface2); }
+.mob-row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.mob-name { font-weight: 500; font-size: 14px; color: var(--text); line-height: 1.4; }
+.mob-total { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.mob-row2 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.mob-qty { font-size: 13px; color: var(--text2); }
+.mob-row3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mob-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mob-date { font-size: 12px; color: var(--text3); }
+.mob-note { font-size: 12px; color: var(--text3); max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mob-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* ── FAB (floating add button on mobile) ── */
+.fab {
+  display: none;
+  position: fixed; bottom: 24px; right: 20px;
+  width: 52px; height: 52px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 50%;
+  font-size: 26px; line-height: 1;
+  cursor: pointer; z-index: 100;
+  box-shadow: 0 4px 16px rgba(45,106,79,0.4);
+  align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+}
+.fab:active { background: #245c42; transform: scale(0.94); }
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+@media (max-width: 768px) {
+  .app-shell { padding: 14px 12px 80px; }
+
+  .top-header { margin-bottom: 14px; gap: 12px; }
+  .brand h1 { font-size: 17px; }
+  .brand p { display: none; }
+  .brand-icon { width: 40px; height: 40px; border-radius: 10px; }
+  .brand-icon svg { width: 20px; height: 20px; }
+
+  .header-actions .btn span { display: none; }
+  .header-actions .btn { padding: 0 10px; }
+
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-icon { width: 26px; height: 26px; font-size: 13px; margin-bottom: 6px; }
+  .stat-val { font-size: 20px; }
+
+  .toolbar { padding: 10px 12px; gap: 8px; }
+  .search-wrap { min-width: 0; width: 100%; flex: none; order: -1; }
+  .filter-sel { flex: 1; min-width: 0; font-size: 12px; }
+  #clear-btn { display: none !important; }
+  .btn-add { display: none; }
+
+  .table-scroll { display: none; }
+  .mob-list { display: block; }
+  .fab { display: flex; }
+
+  .table-footer { padding: 10px 14px; }
+
+  .modal { border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-width: 100%; width: 100%; margin-top: auto; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal-body { padding: 14px 16px; max-height: 65vh; overflow-y: auto; }
+  .modal-header { padding: 14px 16px 12px; }
+  .modal-footer-bar { padding: 12px 16px; }
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-val { font-size: 18px; }
+  .header-actions .btn-excel { display: none; }
+}
 </style>
 </head>
 <body>
@@ -463,6 +545,8 @@ label.flabel {
       </div>
     </div>
 
+    <div class="mob-list" id="mob-list"></div>
+
     <div class="table-footer">
       <span id="footer-count" style="color:var(--text2)">0 dòng</span>
       <div style="display:flex;align-items:center;gap:16px">
@@ -476,6 +560,8 @@ label.flabel {
     Dữ liệu lưu tự động vào trình duyệt này · Mở lại không mất dữ liệu
   </div>
 </div>
+
+<button class="fab" onclick="openModal()" title="Thêm vật liệu">+</button>
 
 <!-- MODAL -->
 <div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
@@ -649,17 +735,20 @@ function render() {
   const empty = document.getElementById('empty-state');
   const table = document.getElementById('main-table');
   const clearBtn = document.getElementById('clear-btn');
+  const mobList = document.getElementById('mob-list');
 
   const hasFilter = document.getElementById('search').value || document.getElementById('filter-cat').value || document.getElementById('filter-unit').value;
   clearBtn.style.display = hasFilter ? 'inline-flex' : 'none';
 
   if (!rows.length) {
     tbody.innerHTML = '';
+    mobList.innerHTML = '';
     empty.style.display = 'block';
     table.style.display = 'none';
   } else {
     empty.style.display = 'none';
     table.style.display = '';
+
     tbody.innerHTML = rows.map((r, i) => {
       const total = r.qty * (r.price || 0);
       return `<tr>
@@ -683,6 +772,39 @@ function render() {
           </div>
         </td>
       </tr>`;
+    }).join('');
+
+    mobList.innerHTML = rows.map((r, i) => {
+      const total = r.qty * (r.price || 0);
+      const s = CAT_STYLE[r.cat] || CAT_STYLE['Khác'];
+      return `<div class="mob-card">
+        <div class="mob-row1">
+          <div class="mob-name">${r.name}</div>
+          <div class="mob-total">${total ? fmtVNDFull(total) : '—'}</div>
+        </div>
+        <div class="mob-row2">
+          <span class="badge" style="background:${s.bg};color:${s.color}">
+            <span style="width:5px;height:5px;border-radius:50%;background:${s.dot};display:inline-block"></span>
+            ${r.cat}
+          </span>
+          <span class="mob-qty">${fmtQty(r.qty)} ${r.unit}</span>
+          ${r.price ? `<span style="font-size:12px;color:var(--text3)">${r.price.toLocaleString('vi-VN')} đ/${r.unit}</span>` : ''}
+        </div>
+        <div class="mob-row3">
+          <div class="mob-meta">
+            <span class="mob-date">${fmtDate(r.date)}</span>
+            ${r.note ? `<span class="mob-note">${r.note}</span>` : ''}
+          </div>
+          <div class="mob-actions">
+            <button class="btn-icon" onclick="openEdit(${r.id})">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn-icon del" onclick="deleteEntry(${r.id})">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>`;
     }).join('');
   }
 
