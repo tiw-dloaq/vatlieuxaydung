@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <title>Vật Liệu Xây Dựng</title>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=zKMH6U2XZqgaJaWpsGafLQ_BekC6AEONrTLwiSg8-okncKSDAa6uXhCRm1SSw4T8ArDiVCYgdyGMKyEhHFmJV364HeiiC91eez1RFY7hzeibh5q_iD7FprISWCRiP6fKwcRD_lWS0PxJrOwjjOYwAeLGeD9lJuami0RIWi7n75CaEg1De7kMfK9XsUkmbpmLmTtfTMm_Z9WuM-BCmHH7_0bl6NpQKU4IiL2eTQSnPQ_WMHZ5iT3xsqiW_qzSGFamLIOj8XmXwA85aeHa393QBA" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -495,7 +496,7 @@ label.flabel {
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
         Xuất Excel
       </button>
-      <button class="btn btn-pdf" onclick="exportPDF()">
+      <button class="btn btn-pdf" onclick="()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Xuất PDF
       </button>
@@ -1376,101 +1377,107 @@ function exportExcel() {
 
   
 async function exportPDF() {
-  if (typeof html2canvas === 'undefined') {
-    showToast('Thiếu thư viện html2canvas', 'error');
-    console.error('html2canvas chưa được load');
-    return;
-  }
+  try {
+    // CHECK LIB
+    if (typeof html2canvas === 'undefined') {
+      showToast('Thiếu thư viện html2canvas', 'error');
+      return;
+    }
 
-  const rows = getFiltered();
-  if (!rows.length) {
-    showToast('Không có dữ liệu để xuất PDF', 'error');
-    return;
-  }
+    const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+    if (!jsPDF) {
+      showToast('Thiếu thư viện jsPDF', 'error');
+      return;
+    }
 
-  const wrap = document.createElement('div');
-  wrap.style.position = 'fixed';
-  wrap.style.left = '-99999px';
-  wrap.style.top = '0';
-  wrap.style.width = '1200px';
-  wrap.style.background = '#ffffff';
-  wrap.style.padding = '24px';
-  wrap.style.color = '#17324a';
-  wrap.style.fontFamily = '"Be Vietnam Pro", sans-serif';
-  wrap.style.zIndex = '-1';
+    const rows = getFiltered();
+    if (!rows.length) {
+      showToast('Không có dữ liệu để xuất PDF', 'error');
+      return;
+    }
 
-  const totalCost = rows.reduce((s, r) => s + r.qty * (r.price || 0), 0);
+    const today = new Date().toLocaleDateString('vi-VN');
 
-  wrap.innerHTML = `
-    <div style="border:1px solid #d8e2ec;border-radius:16px;overflow:hidden;background:#fff;">
-      <div style="background:#3b82b8;color:#fff;padding:16px 20px;">
-        <div style="font-size:20px;font-weight:700;text-align:center;">THỐNG KÊ VẬT LIỆU XÂY DỰNG</div>
-        <div style="font-size:12px;text-align:center;opacity:.95;margin-top:6px;">
-          Ngày xuất: ${today} | Tổng số dòng: ${rows.length}
+    const wrap = document.createElement('div');
+    wrap.style.position = 'fixed';
+    wrap.style.left = '-99999px';
+    wrap.style.top = '0';
+    wrap.style.width = '1200px';
+    wrap.style.background = '#ffffff';
+    wrap.style.padding = '24px';
+    wrap.style.color = '#17324a';
+    wrap.style.fontFamily = '"Be Vietnam Pro", sans-serif';
+    wrap.style.zIndex = '-1';
+
+    const totalCost = rows.reduce((s, r) => s + r.qty * (r.price || 0), 0);
+
+    wrap.innerHTML = `
+      <div style="border:1px solid #d8e2ec;border-radius:16px;overflow:hidden;background:#fff;">
+        <div style="background:#3b82b8;color:#fff;padding:16px 20px;">
+          <div style="font-size:20px;font-weight:700;text-align:center;">THỐNG KÊ VẬT LIỆU XÂY DỰNG</div>
+          <div style="font-size:12px;text-align:center;opacity:.95;margin-top:6px;">
+            Ngày xuất: ${today} | Tổng số dòng: ${rows.length}
+          </div>
         </div>
-      </div>
 
-      <div style="padding:16px 20px;">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-          <thead>
-            <tr style="background:#f6f9fc;">
-              <th style="border:1px solid #d8e2ec;padding:8px;">STT</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Tên vật liệu</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Danh mục</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Số lượng</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Đơn vị</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Đơn giá</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Thành tiền</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Ngày nhập</th>
-              <th style="border:1px solid #d8e2ec;padding:8px;">Ghi chú</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map((r, i) => `
-              <tr>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${i + 1}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;">${r.name || ''}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;">${r.cat || ''}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${fmtQty(r.qty)}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${r.unit || ''}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${r.price ? r.price.toLocaleString('vi-VN') + 'đ' : '—'}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${(r.qty * (r.price || 0)).toLocaleString('vi-VN')}đ</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${fmtDate(r.date)}</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;">${r.note || ''}</td>
+        <div style="padding:16px 20px;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:#f6f9fc;">
+                <th style="border:1px solid #d8e2ec;padding:8px;">STT</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Tên vật liệu</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Danh mục</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Số lượng</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Đơn vị</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Đơn giá</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Thành tiền</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Ngày nhập</th>
+                <th style="border:1px solid #d8e2ec;padding:8px;">Ghi chú</th>
               </tr>
-            `).join('')}
-            <tr style="background:#3b82b8;color:#fff;font-weight:700;">
-              <td style="border:1px solid #d8e2ec;padding:8px;" colspan="5"></td>
-              <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">TỔNG CỘNG</td>
-              <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${totalCost.toLocaleString('vi-VN')}đ</td>
-              <td style="border:1px solid #d8e2ec;padding:8px;" colspan="2"></td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${rows.map((r, i) => `
+                <tr>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${i + 1}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.name || ''}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.cat || ''}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${fmtQty(r.qty)}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${r.unit || ''}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${r.price ? r.price.toLocaleString('vi-VN') + 'đ' : '—'}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${(r.qty * (r.price || 0)).toLocaleString('vi-VN')}đ</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${fmtDate(r.date)}</td>
+                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.note || ''}</td>
+                </tr>
+              `).join('')}
+              <tr style="background:#3b82b8;color:#fff;font-weight:700;">
+                <td style="border:1px solid #d8e2ec;padding:8px;" colspan="5"></td>
+                <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">TỔNG CỘNG</td>
+                <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${totalCost.toLocaleString('vi-VN')}đ</td>
+                <td colspan="2"></td>
+              </tr>
+            </tbody>
+          </table>
 
-        <div style="margin-top:16px;font-size:13px;">
-          <strong style="color:#3b82b8;">TỔNG HỢP:</strong>
-          <div style="margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
-            <div>Tổng loại vật liệu: ${new Set(data.map(r => r.cat)).size} loại</div>
-            <div>Tổng lượt nhập: ${data.length} dòng</div>
-            <div>Tổng chi phí ước tính: ${totalCost.toLocaleString('vi-VN')}đ</div>
+          <div style="margin-top:16px;font-size:13px;">
+            <strong style="color:#3b82b8;">TỔNG HỢP:</strong>
+            <div style="margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
+              <div>Tổng loại vật liệu: ${new Set(data.map(r => r.cat)).size}</div>
+              <div>Tổng lượt nhập: ${data.length}</div>
+              <div>Tổng chi phí: ${totalCost.toLocaleString('vi-VN')}đ</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  document.body.appendChild(wrap);
+    document.body.appendChild(wrap);
 
-  try {
     const canvas = await html2canvas(wrap, {
       scale: 2,
-      useCORS: true,
       backgroundColor: '#ffffff'
     });
 
     const imgData = canvas.toDataURL('image/png');
-    const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('landscape', 'mm', 'a4');
 
     const pageWidth = 297;
@@ -1479,30 +1486,27 @@ async function exportPDF() {
     const usableWidth = pageWidth - margin * 2;
     const imgHeight = canvas.height * usableWidth / canvas.width;
 
-    if (imgHeight <= pageHeight - margin * 2) {
-      pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, imgHeight);
-    } else {
-      let heightLeft = imgHeight;
-      let position = margin;
+    let heightLeft = imgHeight;
+    let position = margin;
 
+    pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
+    heightLeft -= (pageHeight - margin * 2);
+
+    while (heightLeft > 0) {
+      pdf.addPage();
+      position = margin - (imgHeight - heightLeft);
       pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
       heightLeft -= (pageHeight - margin * 2);
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
-        heightLeft -= (pageHeight - margin * 2);
-      }
     }
 
     pdf.save('VatLieuXayDung.pdf');
     showToast('Xuất PDF thành công');
+
+    document.body.removeChild(wrap);
+
   } catch (err) {
     console.error(err);
     showToast('Xuất PDF thất bại', 'error');
-  } finally {
-    document.body.removeChild(wrap);
   }
 }
 
