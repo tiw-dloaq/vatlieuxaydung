@@ -1375,142 +1375,108 @@ function exportExcel() {
 }
 
 // ── EXPORT PDF ──
-
-  
 async function exportPDF() {
+  if (typeof html2canvas === 'undefined' || !window.jspdf) {
+    showToast('Thiếu thư viện PDF', 'error');
+    return;
+  }
+
+  const rows = getFiltered();
+  if (!rows.length) {
+    showToast('Không có dữ liệu để xuất PDF', 'error');
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('vi-VN');
+
+  const wrap = document.createElement('div');
+  wrap.style.position = 'fixed';
+  wrap.style.left = '-99999px';
+  wrap.style.top = '0';
+  wrap.style.width = '1000px'; // giảm width cho nhẹ
+  wrap.style.background = '#fff';
+  wrap.style.padding = '20px';
+  wrap.style.fontFamily = 'Arial, sans-serif'; // ❗ bỏ font Google tránh lỗi
+
+  const totalCost = rows.reduce((s, r) => s + r.qty * (r.price || 0), 0);
+
+  wrap.innerHTML = `
+    <h2 style="text-align:center;margin-bottom:10px;">
+      THỐNG KÊ VẬT LIỆU
+    </h2>
+    <div style="text-align:center;font-size:12px;margin-bottom:10px;">
+      Ngày: ${today}
+    </div>
+
+    <table border="1" style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Tên</th>
+          <th>SL</th>
+          <th>Đơn giá</th>
+          <th>Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${r.name || ''}</td>
+            <td>${r.qty}</td>
+            <td>${r.price ? r.price.toLocaleString('vi-VN') : ''}</td>
+            <td>${(r.qty * (r.price || 0)).toLocaleString('vi-VN')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h3 style="text-align:right;margin-top:10px;">
+      Tổng: ${totalCost.toLocaleString('vi-VN')}đ
+    </h3>
+  `;
+
+  document.body.appendChild(wrap);
+
   try {
-    // CHECK LIB
-    if (typeof html2canvas === 'undefined') {
-      showToast('Thiếu thư viện html2canvas', 'error');
-      return;
-    }
-
-    const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
-    if (!jsPDF) {
-      showToast('Thiếu thư viện jsPDF', 'error');
-      return;
-    }
-
-    const rows = getFiltered();
-    if (!rows.length) {
-      showToast('Không có dữ liệu để xuất PDF', 'error');
-      return;
-    }
-
-    const today = new Date().toLocaleDateString('vi-VN');
-
-    const wrap = document.createElement('div');
-    wrap.style.position = 'fixed';
-    wrap.style.left = '-99999px';
-    wrap.style.top = '0';
-    wrap.style.width = '1200px';
-    wrap.style.background = '#ffffff';
-    wrap.style.padding = '24px';
-    wrap.style.color = '#17324a';
-    wrap.style.fontFamily = '"Be Vietnam Pro", sans-serif';
-    wrap.style.zIndex = '-1';
-
-    const totalCost = rows.reduce((s, r) => s + r.qty * (r.price || 0), 0);
-
-    wrap.innerHTML = `
-      <div style="border:1px solid #d8e2ec;border-radius:16px;overflow:hidden;background:#fff;">
-        <div style="background:#3b82b8;color:#fff;padding:16px 20px;">
-          <div style="font-size:20px;font-weight:700;text-align:center;">THỐNG KÊ VẬT LIỆU XÂY DỰNG</div>
-          <div style="font-size:12px;text-align:center;opacity:.95;margin-top:6px;">
-            Ngày xuất: ${today} | Tổng số dòng: ${rows.length}
-          </div>
-        </div>
-
-        <div style="padding:16px 20px;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:#f6f9fc;">
-                <th style="border:1px solid #d8e2ec;padding:8px;">STT</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Tên vật liệu</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Danh mục</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Số lượng</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Đơn vị</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Đơn giá</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Thành tiền</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Ngày nhập</th>
-                <th style="border:1px solid #d8e2ec;padding:8px;">Ghi chú</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map((r, i) => `
-                <tr>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${i + 1}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.name || ''}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.cat || ''}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${fmtQty(r.qty)}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${r.unit || ''}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${r.price ? r.price.toLocaleString('vi-VN') + 'đ' : '—'}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${(r.qty * (r.price || 0)).toLocaleString('vi-VN')}đ</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">${fmtDate(r.date)}</td>
-                  <td style="border:1px solid #d8e2ec;padding:8px;">${r.note || ''}</td>
-                </tr>
-              `).join('')}
-              <tr style="background:#3b82b8;color:#fff;font-weight:700;">
-                <td style="border:1px solid #d8e2ec;padding:8px;" colspan="5"></td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:center;">TỔNG CỘNG</td>
-                <td style="border:1px solid #d8e2ec;padding:8px;text-align:right;">${totalCost.toLocaleString('vi-VN')}đ</td>
-                <td colspan="2"></td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div style="margin-top:16px;font-size:13px;">
-            <strong style="color:#3b82b8;">TỔNG HỢP:</strong>
-            <div style="margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
-              <div>Tổng loại vật liệu: ${new Set(data.map(r => r.cat)).size}</div>
-              <div>Tổng lượt nhập: ${data.length}</div>
-              <div>Tổng chi phí: ${totalCost.toLocaleString('vi-VN')}đ</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(wrap);
-
     const canvas = await html2canvas(wrap, {
-      scale: 2,
-      backgroundColor: '#ffffff'
+      scale: 1.5, // ❗ giảm scale tránh crash
+      useCORS: true
     });
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('landscape', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
 
-    const pageWidth = 297;
-    const pageHeight = 210;
-    const margin = 8;
-    const usableWidth = pageWidth - margin * 2;
-    const imgHeight = canvas.height * usableWidth / canvas.width;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    const imgWidth = pageWidth;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
 
     let heightLeft = imgHeight;
-    let position = margin;
+    let position = 0;
 
-    pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
-    heightLeft -= (pageHeight - margin * 2);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
 
     while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
       pdf.addPage();
-      position = margin - (imgHeight - heightLeft);
-      pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
-      heightLeft -= (pageHeight - margin * 2);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
 
-    pdf.save('VatLieuXayDung.pdf');
-    showToast('Xuất PDF thành công');
-
-    document.body.removeChild(wrap);
-
+    pdf.save('vat-lieu.pdf');
+    showToast('Xuất PDF OK');
   } catch (err) {
     console.error(err);
-    showToast('Xuất PDF thất bại', 'error');
+    showToast('Xuất PDF lỗi', 'error');
+  } finally {
+    document.body.removeChild(wrap);
   }
 }
-
 // ── INIT ──
 loadData();
 render();
